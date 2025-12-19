@@ -46,6 +46,11 @@ class BabboNatale(arcade.Window):
         self.down_pressed = False
         self.left_pressed = False
         self.right_pressed = False
+        self.M_pressed = False
+
+        self.quantitatico = 0
+
+        self.suono = True
         
         self.velocita = 4
         
@@ -123,11 +128,14 @@ class BabboNatale(arcade.Window):
         collisioni = arcade.check_for_collision_with_list(self.babbo, self.lista_cookie)
         
         if len(collisioni) > 0: # Vuol dire che il personaggio si è scontrato con qualcosa
-            #arcade.play_sound(self.suono_munch)
+            
+            if self.suono:
+                arcade.play_sound(self.suono_munch)
+            
             for cookie in collisioni:
                 cookie.remove_from_sprite_lists()
             self.crea_cookie() # creo un altro biscotto
-    
+
     def on_key_press(self, tasto, modificatori):
         if tasto in (arcade.key.UP, arcade.key.W):
             self.up_pressed = True
@@ -137,6 +145,14 @@ class BabboNatale(arcade.Window):
             self.left_pressed = True
         elif tasto in (arcade.key.RIGHT, arcade.key.D):
             self.right_pressed = True
+        elif tasto == arcade.key.M:
+            self.M_pressed = True
+            if self.quantitatico == 0:
+                self.suono = False
+                self.quantitatico = 1
+            elif self.quantitatico == 1:
+                self.suono = True
+                self.quantitatico = 0
     
     def on_key_release(self, tasto, modificatori):
         """Gestisce il rilascio dei tasti"""
@@ -148,6 +164,8 @@ class BabboNatale(arcade.Window):
             self.left_pressed = False
         elif tasto in (arcade.key.RIGHT, arcade.key.D):
             self.right_pressed = False
+        elif tasto == arcade.key.M:
+            self.M_pressed = False
 
 def main():
     gioco = BabboNatale(600, 600, "Babbo Natale")
