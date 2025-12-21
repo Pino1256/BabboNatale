@@ -6,9 +6,9 @@ import random
 """
 Compiti per casa: La scorpacciata di Babbo Natale
 Dato questo giochino come partenza, aggiungere le seguenti modifiche:
-1 - Scaricare, disegnare o generare con AI un'immagine di sfondo
+-1 - Scaricare, disegnare o generare con AI un'immagine di sfondo
      e mostrarla poi come background
-2 - Premendo il tasto "M", il suono verrà mutato. Premendolo di nuovo
+-2 - Premendo il tasto "M", il suono verrà mutato. Premendolo di nuovo
      il suono deve tornare. Avete due possibilità: o evitate proprio
      di far partire il suono, o vi guardate come funziona play_sound
      e vedete se c'è qualcosa che vi può essere utile
@@ -52,6 +52,8 @@ class BabboNatale(arcade.Window):
 
         self.suono = True
         
+        self.numero_biscotti=0
+
         self.velocita = 4
         
         self.setup()
@@ -87,6 +89,13 @@ class BabboNatale(arcade.Window):
         self.lista_background.draw()
         self.lista_cookie.draw()
         self.lista_babbo.draw()
+        arcade.draw_text(
+            f"Punteggio: {self.numero_biscotti}",
+            20, #X
+            570, # y
+            arcade.color.WHITE,
+            15
+        )
 
     
     def on_update(self, delta_time):
@@ -134,6 +143,7 @@ class BabboNatale(arcade.Window):
             
             for cookie in collisioni:
                 cookie.remove_from_sprite_lists()
+                self.numero_biscotti += 1
             self.crea_cookie() # creo un altro biscotto
 
     def on_key_press(self, tasto, modificatori):
