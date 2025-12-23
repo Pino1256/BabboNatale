@@ -1,6 +1,6 @@
 import arcade
 import random
-
+import math
 
 
 """
@@ -12,8 +12,8 @@ Dato questo giochino come partenza, aggiungere le seguenti modifiche:
      il suono deve tornare. Avete due possibilità: o evitate proprio
      di far partire il suono, o vi guardate come funziona play_sound
      e vedete se c'è qualcosa che vi può essere utile
-3 - Contate quanti biscotti vengono raccolti, salvatelo in una variabile
-4 - Mostrate con draw_text il punteggio (numero di biscotti raccolti)
+-3 - Contate quanti biscotti vengono raccolti, salvatelo in una variabile
+-4 - Mostrate con draw_text il punteggio (numero di biscotti raccolti)
 5 - Fate in modo che il nuovo biscotto venga sempre creato almeno a 100 pixel
     di distanza rispetto al giocatore
 
@@ -48,6 +48,9 @@ class BabboNatale(arcade.Window):
         self.right_pressed = False
         self.M_pressed = False
 
+        # biscotto a 100 pixel di distanza
+        self.angolo = random.uniform(0,360)
+
         self.quantitatico = 0
 
         self.suono = True
@@ -78,9 +81,14 @@ class BabboNatale(arcade.Window):
         self.lista_background.append(self.background)
     
     def crea_cookie(self):
+
+        self.angolo = random.uniform(0, 360)
+        self.angolo_rad = math.radians(self.angolo)
+        self.distanza = random.randint(100, 350)
+
         self.cookie = arcade.Sprite("./assets/cookie.png")
-        self.cookie.center_x = random.randint(50, 550)
-        self.cookie.center_y = random.randint(50, 550)
+        self.cookie.center_x = self.babbo.center_x + math.cos(self.angolo_rad) * self.distanza  #random.randint(50, 550)
+        self.cookie.center_y = self.babbo.center_y + math.sin(self.angolo_rad) * self.distanza #random.randint(50, 550)
         self.cookie.scale = 0.2
         self.lista_cookie.append(self.cookie)
     
@@ -132,6 +140,17 @@ class BabboNatale(arcade.Window):
             self.babbo.center_y = 0
         elif self.babbo.center_y > self.height:
             self.babbo.center_y = self.height
+
+        # Limita biscotto dentro lo schermo
+        if self.cookie.center_x < 0:
+            self.cookie.center_x = 0
+        elif self.cookie.center_x > self.width:
+            self.cookie.center_x = self.width
+        
+        if self.cookie.center_y < 0:
+            self.cookie.center_y = 0
+        elif self.cookie.center_y > self.height:
+            self.cookie.center_y = self.height
         
         # Gestione collisioni
         collisioni = arcade.check_for_collision_with_list(self.babbo, self.lista_cookie)
