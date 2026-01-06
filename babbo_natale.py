@@ -14,10 +14,10 @@ Dato questo giochino come partenza, aggiungere le seguenti modifiche:
      e vedete se c'è qualcosa che vi può essere utile
 -3 - Contate quanti biscotti vengono raccolti, salvatelo in una variabile
 -4 - Mostrate con draw_text il punteggio (numero di biscotti raccolti)
-5 - Fate in modo che il nuovo biscotto venga sempre creato almeno a 100 pixel
+-5 - Fate in modo che il nuovo biscotto venga sempre creato almeno a 100 pixel
     di distanza rispetto al giocatore
 
-6 - Ogni volta che babbo natale mangia 5 biscotti, dalla prossima volta
+-6 - Ogni volta che babbo natale mangia 5 biscotti, dalla prossima volta
     in  poi verranno creati 2 biscotti per volta. Dopo averne mangiati
     altri 5, vengono creati 3 biscotti per volta, poi 4, e via dicendo
 
@@ -50,6 +50,9 @@ class BabboNatale(arcade.Window):
 
         # biscotto a 100 pixel di distanza
         self.angolo = random.uniform(0,360)
+        self.biscotti_allavolta = 2
+        self.quantita = 1
+        self.contatore = 5
 
         self.quantitatico = 0
 
@@ -92,8 +95,11 @@ class BabboNatale(arcade.Window):
         self.cookie.scale = 0.2
         self.lista_cookie.append(self.cookie)
     
+
     def on_draw(self):
+        
         self.clear()
+        self.lista_cookie.draw()
         self.lista_background.draw()
         self.lista_cookie.draw()
         self.lista_babbo.draw()
@@ -154,7 +160,7 @@ class BabboNatale(arcade.Window):
         
         # Gestione collisioni
         collisioni = arcade.check_for_collision_with_list(self.babbo, self.lista_cookie)
-        
+
         if len(collisioni) > 0: # Vuol dire che il personaggio si è scontrato con qualcosa
             
             if self.suono:
@@ -163,7 +169,26 @@ class BabboNatale(arcade.Window):
             for cookie in collisioni:
                 cookie.remove_from_sprite_lists()
                 self.numero_biscotti += 1
-            self.crea_cookie() # creo un altro biscotto
+            #self.crea_cookie() # creo un altro biscotto
+
+            #calcola quanti biscotti creare
+            self.biscotti_allavolta = 1 + self.numero_biscotti // 5
+
+            for i in range(self.biscotti_allavolta):
+                self.crea_cookie()
+
+           # if self.numero_biscotti == self.contatore :
+           #     self.quantita += 1
+
+          #  if self.numero_biscotti >= self.contatore:
+         #       for i in range(self.biscotti_allavolta):
+          #          self.crea_cookie()
+           # else:
+          #      self.crea_cookie()
+            
+            #if self.numero_biscotti == self.contatore :
+           #     self.contatore += 5
+
 
     def on_key_press(self, tasto, modificatori):
         if tasto in (arcade.key.UP, arcade.key.W):
