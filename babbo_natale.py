@@ -1,6 +1,7 @@
 import arcade
 import random
 import math
+import time
 
 
 """
@@ -37,6 +38,8 @@ class BabboNatale(arcade.Window):
         self.babbo = None
         self.cookie = None
         self.background = None
+        self.gold_cookie = None
+        self.lista_goold_cookie = arcade.SpriteList()
         self.lista_background = arcade.SpriteList()
         self.lista_babbo = arcade.SpriteList()
         self.lista_cookie = arcade.SpriteList()
@@ -84,23 +87,39 @@ class BabboNatale(arcade.Window):
         self.lista_background.append(self.background)
     
     def crea_cookie(self):
+        
+        # probabilita 3% golden cookie
+        if random.random() <= 0.03:
+            self.crea_gold_cookie()
 
         self.angolo = random.uniform(0, 360)
         self.angolo_rad = math.radians(self.angolo)
         self.distanza = random.randint(100, 350)
 
         self.cookie = arcade.Sprite("./assets/cookie.png")
-        self.cookie.center_x = self.babbo.center_x + math.cos(self.angolo_rad) * self.distanza  #random.randint(50, 550)
-        self.cookie.center_y = self.babbo.center_y + math.sin(self.angolo_rad) * self.distanza #random.randint(50, 550)
+        self.cookie.center_x = self.babbo.center_x + math.cos(self.angolo_rad) * self.distanza  
+        self.cookie.center_y = self.babbo.center_y + math.sin(self.angolo_rad) * self.distanza 
         self.cookie.scale = 0.2
         self.lista_cookie.append(self.cookie)
-    
+
+    def crea_gold_cookie(self):
+
+        self.angolo = random.uniform(0, 360)
+        self.angolo_rad = math.radians(self.angolo)
+        self.distanza = random.randint(100, 350)
+
+        self.gold_cookie = arcade.Sprite("./assets/gold_cookie.png")
+        self.gold_cookie.center_x = self.babbo.center_x + math.cos(self.angolo_rad) * self.distanza  
+        self.gold_cookie.center_y = self.babbo.center_y + math.sin(self.angolo_rad) * self.distanza 
+        self.gold_cookie.scale = 0.05
+        self.gold_cookie.time_created = time.time()
+        self.lista_goold_cookie.append(self.gold_cookie)
 
     def on_draw(self):
         
         self.clear()
-        self.lista_cookie.draw()
         self.lista_background.draw()
+        self.lista_goold_cookie.draw()
         self.lista_cookie.draw()
         self.lista_babbo.draw()
         arcade.draw_text(
@@ -113,6 +132,7 @@ class BabboNatale(arcade.Window):
 
     
     def on_update(self, delta_time):
+
         # Calcola movimento in base ai tasti premuti
         change_x = 0
         change_y = 0
@@ -148,49 +168,56 @@ class BabboNatale(arcade.Window):
             self.babbo.center_y = self.height
 
         # Limita biscotto dentro lo schermo
-        if self.cookie.center_x < 0:
-            self.cookie.center_x = 0
-        elif self.cookie.center_x > self.width:
-            self.cookie.center_x = self.width
-        
-        if self.cookie.center_y < 0:
-            self.cookie.center_y = 0
-        elif self.cookie.center_y > self.height:
-            self.cookie.center_y = self.height
+        for cookie in self.lista_cookie:
+            self.cookie.center_x = max(0, min(self.width, self.cookie.center_x))
+            self.cookie.center_y = max(0, min(self.height, self.cookie.center_y))
         
         # Gestione collisioni
-        collisioni = arcade.check_for_collision_with_list(self.babbo, self.lista_cookie)
+        collisioni_cookie = arcade.check_for_collision_with_list(self.babbo, self.lista_cookie)
+        collisioni_gold_cookie = arcade.check_for_collision_with_list(self.babbo, self.lista_goold_cookie)
 
-        if len(collisioni) > 0: # Vuol dire che il personaggio si è scontrato con qualcosa
+        if len(collisioni_cookie) > 0: # Vuol dire che il personaggio si è scontrato con qualcosa
             
             if self.suono:
                 arcade.play_sound(self.suono_munch)
-            
-            for cookie in collisioni:
+            # collisioni con i biscotti normali
+
+            for cookie in collisioni_cookie:
                 cookie.remove_from_sprite_lists()
                 self.numero_biscotti += 1
-            #self.crea_cookie() # creo un altro biscotto
 
             #calcola quanti biscotti creare
             self.biscotti_allavolta = 1 + self.numero_biscotti // 5
 
             for i in range(self.biscotti_allavolta):
                 self.crea_cookie()
+        
+        if len(collisioni_gold_cookie):
 
-           # if self.numero_biscotti == self.contatore :
-           #     self.quantita += 1
+            if self.suono:
+                arcade.play_sound(self.suono_munch)
 
-          #  if self.numero_biscotti >= self.contatore:
-         #       for i in range(self.biscotti_allavolta):
-          #          self.crea_cookie()
-           # else:
-          #      self.crea_cookie()
-            
-            #if self.numero_biscotti == self.contatore :
-           #     self.contatore += 5
+            for cookie in collisioni_gold_cookie:
+                cookie.remove_from_sprite_lists()
+                self.numero_biscotti += 100
 
+            for i in range(self.biscotti_allavolta):
+                self.crea_cookie()
+        
+
+        if len(self.lista_cookie) == 0:
+            for i in range(self.biscotti_allavolta):
+                self.crea_cookie()
+        
+        # distruggie il biscotto d'oro dopo 3 secondi
+        tempo_attuale = time.time()
+
+        for gold_cookie in self.lista_goold_cookie:
+            if tempo_attuale - gold_cookie.time_created >= 3:
+                gold_cookie.remove_from_sprite_lists()
 
     def on_key_press(self, tasto, modificatori):
+
         if tasto in (arcade.key.UP, arcade.key.W):
             self.up_pressed = True
         elif tasto in (arcade.key.DOWN, arcade.key.S):
@@ -209,7 +236,9 @@ class BabboNatale(arcade.Window):
                 self.quantitatico = 0
     
     def on_key_release(self, tasto, modificatori):
+
         """Gestisce il rilascio dei tasti"""
+
         if tasto in (arcade.key.UP, arcade.key.W):
             self.up_pressed = False
         elif tasto in (arcade.key.DOWN, arcade.key.S):
@@ -222,6 +251,7 @@ class BabboNatale(arcade.Window):
             self.M_pressed = False
 
 def main():
+
     gioco = BabboNatale(600, 600, "Babbo Natale")
     arcade.run()
 
